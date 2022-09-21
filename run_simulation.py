@@ -1,3 +1,4 @@
+import numpy as np
 from cell_mig import pdf
 
 ini_grid = np.array([
