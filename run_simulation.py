@@ -1,5 +1,7 @@
 import numpy as np
+from time import sleep
 from cell_mig import pdf
+
 
 ini_grid = np.array([
 [0,0,0,0,0,0,0,0,0,0],
