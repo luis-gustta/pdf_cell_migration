@@ -15,7 +15,7 @@ ini_grid = np.array([
 [0,0,0,0,0,0,0,0,0,0],
 [0,0,0,0,0,0,0,0,0,0]])
 
-cell1 = pdf.pdf(10,10,0,0,ini_grid)
+cell1 = pdf.cell(10,10,0,0,ini_grid)
 
 for i in range(0,10):
     #cell1.drift_para_dir()
