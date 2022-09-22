@@ -8,9 +8,7 @@ from numba import jit
 from time import sleep
 
 
-
-
-class pdf(object):
+class cell(object):
     def __init__(self, x, y, theta, kappa, initial_grid):
         self.x = x
         self.y = y
