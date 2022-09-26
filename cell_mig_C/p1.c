@@ -14,20 +14,20 @@
 const int N_x = 200; //Number of sites in the X direction
 const int N_y = 200; //Number of sites in the Y direction
 
-const double max_abs_p = 1.0;
+const double max_abs_p = 2.0;
 const double min_abs_p = 0.0;
 
-const double max_theta = 10.0;
-const double min_theta = -10.0;
+const double max_theta = 2.0;
+const double min_theta = -2.0;
 
 const double kappa = 1.0;
 
-const double D_r_par = 1.0;
-const double D_r_perp = 1.0;
+const double D_r_par = 0.0;
+const double D_r_perp = 0.0;
 
-const double D_theta = 1.0;
+const double D_theta = 0.0;
 
-const double D_p = 1.0;
+const double D_p = 0.0;
 
 const int t_max = 200; //Number of iterations
 
@@ -165,18 +165,8 @@ void simulation(double ****rho, double ****rho_new, double **rho_real, FILE *den
 	      v_drift = (int)(kappa * n_abs_p);
 	      drx_m = i - v_drift;
 	      drx_m = wrap_grid(drx_m,N_x);
-
-	      j_aux = j;
 	      
-	      if (drx_m*drx_m + j*j > N_x*N_x){
-		j_aux = -j;
-		drx_m = -drx_m;
-	      }
-
-	      j_aux = wrap_grid(j_aux,N_y);
-	      drx_m = wrap_grid(drx_m,N_x);
-	      
-	      rho_new[i][j_aux][l][m] = rho[drx_m][j_aux][l][m];
+	      rho_new[i][j][l][m] = rho[drx_m][j][l][m];
 	    }
 	  }
 	}
@@ -202,27 +192,8 @@ void simulation(double ****rho, double ****rho_new, double **rho_real, FILE *den
 	      
 	      dr_p = j+1;
 	      dr_p = wrap_grid(dr_p,N_y);
-
-	      i_m_aux = i;
-	      i_p_aux = i;
 	      
-	      if (i*i + dr_m*dr_m > N_x*N_x){
-		i_m_aux = -i;
-		dr_m = -dr_m;
-	      }
-
-	      i_m_aux = wrap_grid(i_m_aux,N_x);
-	      dr_m = wrap_grid(dr_m,N_y);
-
-	      if (i*i + dr_p*dr_p > N_x*N_x){
-		i_p_aux = -i;
-		dr_p = -dr_p;
-	      }
-
-	      i_p_aux = wrap_grid(i_p_aux,N_x);
-	      dr_p = wrap_grid(dr_p,N_y);
-	      
-	      rho_new[i][j][l][m] = rho[i][j][l][m] + 0.5*D_r_perp*(rho[i_m_aux][dr_m][l][m] + rho[i_p_aux][dr_p][l][m] - 2.0*rho[i][j][l][m]);
+	      rho_new[i][j][l][m] = rho[i][j][l][m] + 0.5*D_r_perp*(rho[i][dr_m][l][m] + rho[i][dr_p][l][m] - 2.0*rho[i][j][l][m]);
 	    }
 	  }
 	}
@@ -248,27 +219,8 @@ void simulation(double ****rho, double ****rho_new, double **rho_real, FILE *den
 	      
 	      dr_p = i+1;
 	      dr_p = wrap_grid(dr_p,N_x);
-
-	      j_m_aux = j;
-	      j_p_aux = j;
-
-	      if (dr_m*dr_m + j*j > N_x*N_x){
-		j_m_aux = -j;
-		dr_m = -dr_m;
-	      }
-
-	      j_m_aux = wrap_grid(j_m_aux,N_y);
-	      dr_m = wrap_grid(dr_m,N_y);
-
-	      if (dr_p*dr_p + j*j > N_x*N_x){
-		j_p_aux = -j;
-		dr_p = -dr_p;
-	      }
-
-	      j_p_aux = wrap_grid(j_p_aux,N_y);
-	      dr_p = wrap_grid(dr_p,N_y);
 	      
-	      rho_new[i][j][l][m] = rho[i][j][l][m] + 0.5*D_r_par*(rho[dr_m][j_m_aux][l][m] + rho[dr_p][j_p_aux][l][m] - 2.0*rho[i][j][l][m]);
+	      rho_new[i][j][l][m] = rho[i][j][l][m] + 0.5*D_r_par*(rho[dr_m][j][l][m] + rho[dr_p][j][l][m] - 2.0*rho[i][j][l][m]);
 	    }
 	  }
 	}
@@ -296,7 +248,7 @@ void simulation(double ****rho, double ****rho_new, double **rho_real, FILE *den
 	    j_real = (int)(R*sin(-2.0*m*M_PI/n_theta + angle) + 0.5);
 	    j_real = wrap_grid(j_real,N_y);
 
-	    zero_sum[i][j] = zero_sum[i][j] + rho[i][j][0][m];
+	    zero_sum[i_real][j_real] = zero_sum[i_real][j_real] + rho[i][j][0][m];
 	  }
 	}
       }
@@ -364,13 +316,13 @@ void simulation(double ****rho, double ****rho_new, double **rho_real, FILE *den
 	  
 	  for(l = 1 ; l < n_abs_p ; l++){
 	    for(m = 0 ; m < n_theta ; m++){
-	    
+
 	      dtheta_m = m-1;
 	      dtheta_m = wrap_grid(dtheta_m,n_theta);
 	      
 	      dtheta_p = m+1;
 	      dtheta_p = wrap_grid(dtheta_p,n_theta);
-
+	      
 	      if (i==0 && j==0) {
 		drx_p = 0;
 		drx_m = 0;
@@ -391,22 +343,6 @@ void simulation(double ****rho, double ****rho_new, double **rho_real, FILE *den
                 dry_m=(int)(R*sin(angle-(dtheta_m-m)*2.0*M_PI/n_theta)+0.5);
 		dry_m = wrap_grid(dry_m,N_x);
 	      }
-
-	      if (drx_m*drx_m + dry_m*dry_m > N_x*N_x){
-		drx_m = -drx_m;
-		dry_m = -dry_m;
-	      }
-
-	      drx_m = wrap_grid(drx_m,N_x);
-	      dry_m = wrap_grid(dry_m,N_y);
-
-	      if (drx_p*drx_p + dry_p*dry_p > N_x*N_x){
-		drx_p = -drx_p;
-		dry_p = -dry_p;
-	      }
-
-	      drx_p = wrap_grid(drx_p,N_x);
-	      dry_p = wrap_grid(dry_p,N_y);
 	      
 	      rho_new[i][j][l][m] = rho[i][j][l][m] + 0.5*D_theta*(rho[drx_m][dry_m][l][dtheta_m] + rho[drx_p][dry_p][l][dtheta_p] - 2.0*rho[i][j][l][m]);
 	    }
@@ -438,10 +374,10 @@ void simulation(double ****rho, double ****rho_new, double **rho_real, FILE *den
 	      j_real = (int)(R*sin(2.0*m*M_PI/n_theta + angle) + 0.5);
 	      j_real = wrap_grid(j_real,N_y);
 
-	      if (i_real*i_real + j_real*j_real > N_x*N_x){
+	      /*if (i_real*i_real + j_real*j_real > N_x*N_x){
 		i_real = -i_real;
 		j_real = -j_real;
-	      }
+		}*/
 
 	      i_real = wrap_grid(i_real,N_x);
 	      j_real = wrap_grid(j_real,N_y);
@@ -466,10 +402,11 @@ void simulation(double ****rho, double ****rho_new, double **rho_real, FILE *den
 		b = (float)j_real - (float)N_y/2;
 	      }
 
-	      a = wrap_grid(a,N_x);
-	      b = wrap_grid(b,N_y);
+	      a = (int)wrap_grid(a,N_x);
+	      b = (int)wrap_grid(b,N_y);
 
-	      rho_real[a][b] = rho_real[a][b] + rho[i][j][l][m];
+	      //rho_real[a][b] = rho_real[a][b] + rho[i][j][l][m];
+	      rho_real[i_real][j_real] = rho_real[i_real][j_real] + rho[i][j][l][m];
 	    }
 	  }
 	}
@@ -477,7 +414,8 @@ void simulation(double ****rho, double ****rho_new, double **rho_real, FILE *den
       for(i = 0 ; i < N_x ; i++){
 	for(j = 0 ; j < N_y ; j++){
 	  fprintf(density,"%d \t %d \t %lf\n", i - N_x/2, j - N_y/2, rho_real[i][j]);
-
+	  //fprintf(density,"%d \t %d \t %lf\n", i, j, rho_real[i][j]);
+	  
    	  total = total + rho_real[i][j];
 	  rho_real[i][j] = 0.0;
 	}
