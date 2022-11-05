@@ -26,8 +26,8 @@ class cell(object):
         self.real_lattice = np.zeros([self.n_x,self.n_y,self.n_theta,self.n_pol])
 
         self.D_theta = 0.05
-        self.D_para_dir = 0.01
-        self.D_perp_dir = 0.01
+        self.D_para_dir = 0.05
+        self.D_perp_dir = 0.05
 
     def diffusion_para_dir(self):
         D = self.D_para_dir
@@ -71,8 +71,6 @@ class cell(object):
                 aux[:,:,i,j] = aux[:,:,i,j] + diff
 
         self.real_lattice = self.real_lattice + self.D_theta*aux
-
-
 
     def diffusion_kappa(self):
         kernel=np.array([[1./3.,1./3.,1./3.]])
