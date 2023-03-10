@@ -43,8 +43,6 @@ class cell(object):
 
         self.max_x = (1./(math.sqrt(2)))*self.n_x
         self.max_y = (1./(math.sqrt(2)))*self.n_y
-        # self.max_x = 0.7*self.n_x
-        # self.max_y = 0.7*self.n_y
 
     def diffusion_para_dir(self):
         D = self.D_para_dir
@@ -79,16 +77,7 @@ class cell(object):
         for i in range(0, self.n_theta):
             for j in range(0, self.n_pol):
                  self.lattice[:,:,i,j] = np.roll(self.lattice[:,:,i,j], j+1, axis=1) #Introduce velocity dynamics (dissipation, diffusion and from 0 to 1)
-        # STANDARD METHOD (Same results for both methods)
-        # aux = np.zeros([self.n_x,self.n_y,self.n_theta,self.n_pol])
-        # for i in range(0, self.n_theta):
-        #     for j in range(0, self.n_pol):
-        #         for l in range(0, self.n_x):
-        #             for m in range(0, self.n_y):
-        #                 v_drift = int((j+1)*self.kappa) #fazer com que o j=0 passe para j=1
-        #                 aux[l,m,i,j] = self.lattice[l,m-v_drift,i,j]
-        # self.lattice = np.copy(aux)
-
+                    
     def diffusion_theta(self):
         D = self.D_theta
         aux = np.zeros([self.n_x,self.n_y,self.n_theta,self.n_pol])
@@ -116,23 +105,44 @@ class cell(object):
                         else:
                             aux[l,m,i,j] = self.lattice[l,m,i,j]
         self.lattice = np.copy(aux)
-
+    
     def to_real_lattice(self):
         aux = np.zeros([self.n_x,self.n_y,self.n_theta,self.n_pol])
         for i in range(0, self.n_theta):
             for j in range(0, self.n_pol):
-                d_theta = i*(360./self.n_theta) # NEVER USE GRID WRAP, USE MODE 'CONSTANT' OR ELSE IT WILL MESS UP WITH THE BOUNDARY CONDITIONS
-                aux[:,:,i,j] = aux[:,:,i,j] + rot(self.lattice[:,:,i,j],d_theta, preserve_range=True)
-                # aux[:,:,i,j] = aux[:,:,i,j] + rotate(self.lattice[:,:,i,j], angle=d_theta, reshape=False, mode='constant', order=5)
-        self.real_lattice = np.copy(aux)
+                for x in range(0,math.floor(self.n_x)):
+                    for y in range(0,math.floor(self.n_y)):
+                        d_theta = i*(2.*math.pi/self.n_theta) 
+                        
+                        y_real = y - self.n_y/2.
+                        x_real = x - self.n_x/2.
 
+                        x_new = x_real*math.cos(d_theta) - y_real*math.sin(d_theta) + self.n_x/2.
+                        y_new = x_real*math.sin(d_theta) + y_real*math.cos(d_theta) + self.n_y/2.
+                        
+                        x_new = self.wrap(x_new,self.n_x-1)
+                        y_new = self.wrap(y_new,self.n_y-1)
+                    
+                        aux[x_new,y_new,i,j] = aux[x_new,y_new,i,j] + self.lattice[x,y,i,j]
+        self.real_lattice = np.copy(aux)
+    
     def from_real_lattice(self):
         aux = np.zeros([self.n_x,self.n_y,self.n_theta,self.n_pol])
         for i in range(0, self.n_theta):
             for j in range(0, self.n_pol):
-                d_theta = -i*(360./self.n_theta) # NEVER USE GRID WRAP, USE MODE 'CONSTANT' OR ELSE IT WILL MESS UP WITH THE BOUNDARY CONDITIONS
-                aux[:,:,i,j] = aux[:,:,i,j] + rot(self.lattice[:,:,i,j],d_theta, preserve_range=True)
-                # aux[:,:,i,j] = aux[:,:,i,j] + rotate(self.real_lattice[:,:,i,j], angle=d_theta, reshape=False, mode='constant', order=5)
+                for x in range(0,math.floor(self.n_x)):
+                    for y in range(0,math.floor(self.n_y)):
+                        d_theta = i*(2.*math.pi/self.n_theta) 
+                        y_real = y - self.n_y/2.
+                        x_real = x - self.n_x/2.
+                        
+                        x_new = x_real*math.cos(d_theta) + y_real*math.sin(d_theta) + self.n_x/2.
+                        y_new = -x_real*math.sin(d_theta) + y_real*math.cos(d_theta) + self.n_y/2.
+                        
+                        x_new = self.wrap(x_new,self.n_x-1)
+                        y_new = self.wrap(y_new,self.n_y-1)
+                        
+                        aux[x_new,y_new,i,j] = aux[x_new,y_new,i,j] + self.real_lattice[x,y,i,j]
         self.lattice = np.copy(aux)
 
     #Try to apply the numba function to speed up the process
@@ -170,6 +180,9 @@ class cell(object):
         fig = plt.imshow(aux, cmap='hot')
         block=False
         plt.pause(0.001)
+        
+    def wrap(self,val,max_val):
+        return round(val - max_val * math.floor(val/max_val))
 
     def total(self):
         prob = np.sum(np.concatenate(self.real_lattice))
