@@ -1,4 +1,5 @@
 numba
-numpy
-scipy
-pytorch
+numpy~=1.23
+scipy~=1.8.0
+
+matplotlib>=3.5.1
