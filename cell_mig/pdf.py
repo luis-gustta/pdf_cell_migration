@@ -12,11 +12,11 @@ def create_grid(n_x, n_y, n_pol, n_theta):
     return np.zeros([n_x, n_y, n_pol, n_theta])
 
 
-def resample(arr, n):
-    aux_arr = []
-    for v in np.vsplit(arr, arr.shape[0] // n):
-        aux_arr.extend([*np.hsplit(v, arr.shape[0] // n)])
-    return np.array(aux_arr)
+# def resample(arr, n):
+#     aux_arr = []
+#     for v in np.vsplit(arr, arr.shape[0] // n):
+#         aux_arr.extend([*np.hsplit(v, arr.shape[0] // n)])
+#     return np.array(aux_arr)
 
 
 def wrap(val, max_val):
@@ -41,6 +41,13 @@ class Cell(object):
 
         self.max_x = (1. / (math.sqrt(2))) * self.n_x
         self.max_y = (1. / (math.sqrt(2))) * self.n_y
+
+    def __str__(self):
+        attrs = vars(self).copy()
+        attrs.pop('lattice')
+        attrs.pop('real_lattice')
+        string = (', \n'.join("%s: %s" % item for item in attrs.items()))
+        return string
 
     def diffusion_para_dir(self):
         diff = self.diff_para_dir
@@ -196,3 +203,13 @@ class Cell(object):
         prob = np.sum(np.concatenate(self.real_lattice))
         # prob = np.sum(np.concatenate(self.lattice))
         return prob
+
+
+'''
+vectorize functions:
+    1. r and theta
+    2. parallel loops
+    3. numpy
+
+-> ~17 iter, stop moving
+'''
